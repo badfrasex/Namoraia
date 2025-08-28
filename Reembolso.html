@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pedido de Reembolso</title>
+  <style>
+    :root{
+      --primary:#d00000; /* vermelho */
+      --primary-700:#a00000;
+      --bg:#f7f7f8;
+      --card:#ffffff;
+      --text:#1f2328;
+      --muted:#6b7280;
+      --ring:#ffd6d6;
+      --success:#0a7d2b;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      background:var(--bg); color:var(--text); line-height:1.45;
+    }
+    .container{max-width: 920px; margin: 24px auto; padding: 0 16px;}
+    .banner{
+      background: linear-gradient(90deg, var(--primary), #f44336);
+      color:#fff; border-radius: 16px; padding: 18px 20px; display:flex; gap:14px; align-items:flex-start;
+      box-shadow: 0 6px 18px rgba(208,0,0,0.2);
+    }
+    .banner .icon{
+      width:28px; height:28px; flex:0 0 28px; display:grid; place-items:center;
+      border:2px solid #fff; border-radius:50%; font-weight:700;
+    }
+    .card{
+      background:var(--card); border-radius:18px; padding:22px; margin-top:18px;
+      box-shadow: 0 10px 24px rgba(0,0,0,.06); border:1px solid #eee;
+    }
+    h1{font-size: clamp(22px, 2.4vw, 28px); margin: 6px 0 2px}
+    p.lead{color:var(--muted); margin: 0 0 10px}
+    .grid{display:grid; grid-template-columns: 1fr; gap:14px}
+    @media (min-width:720px){ .grid-2{grid-template-columns: 1fr 1fr} .grid-3{grid-template-columns: 1fr 1fr 1fr} }
+    label{font-weight:600; font-size:14px}
+    input, select, textarea{
+      width:100%; margin-top:6px; padding:12px 12px; border-radius:12px; border:1px solid #dcdcdc; background:#fff; color:inherit;
+      outline:none; transition: border .15s, box-shadow .15s;
+    }
+    input:focus, select:focus, textarea:focus{
+      border-color: var(--primary); box-shadow: 0 0 0 4px var(--ring);
+    }
+    textarea{min-height:120px; resize:vertical}
+    .help{font-size:12px; color:var(--muted); margin-top:4px}
+    .row{display:flex; gap:10px; align-items:center}
+    .chip{
+      font-size:12px; background:#fff0f0; color:var(--primary); border:1px dashed var(--primary); padding:4px 8px; border-radius:999px;
+    }
+    .actions{display:flex; gap:10px; align-items:center; margin-top:10px}
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center; gap:10px;
+      border:none; padding:12px 16px; border-radius:12px; cursor:pointer; font-weight:700;
+      background:var(--primary); color:#fff;
+      box-shadow: 0 6px 14px rgba(208,0,0,.25);
+      transition: transform .05s ease, background .15s ease;
+    }
+    .btn:active{ transform: translateY(1px) }
+    .btn:disabled{ opacity:.6; cursor:not-allowed }
+    .btn.secondary{ background:#fff; color:var(--primary); border:1px solid var(--primary); box-shadow:none }
+    .divider{height:1px; background:#eee; margin:10px 0 18px}
+    .status{
+      display:none; margin-top:12px; padding:12px; border-radius:12px; border:1px solid #d1fadf; background:#ecfdf3; color:var(--success); font-weight:600;
+    }
+    .required{color:var(--primary)}
+    .footer-note{font-size:12px; color:var(--muted); margin-top:14px}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="banner" role="status" aria-live="polite">
+      <div class="icon">!</div>
+      <div>
+        <strong>Sistema em manutenção</strong>
+        <p style="margin:4px 0 0">
+          Estamos realizando ajustes internos. Você pode <strong>abrir seu pedido de reembolso</strong> normalmente e ele será colocado na fila de processamento.
+        </p>
+        <div class="row" style="margin-top:8px">
+          <span class="chip">Tempo estimado de normalização: breve</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" role="form" aria-labelledby="titulo-form">
+      <h1 id="titulo-form">Solicitação de Reembolso</h1>
+      <p class="lead">Preencha os dados abaixo. Campos com <span class="required">*</span> são obrigatórios.</p>
+      <div class="divider"></div>
+
+      <form id="refundForm" action="/api/reembolsos" method="POST" enctype="multipart/form-data" novalidate>
+        <div class="grid grid-2">
+          <div>
+            <label for="nome">Nome completo <span class="required">*</span></label>
+            <input id="nome" name="nome" type="text" placeholder="Seu nome" autocomplete="name" required />
+          </div>
+          <div>
+            <label for="email">E-mail <span class="required">*</span></label>
+            <input id="email" name="email" type="email" placeholder="seuemail@exemplo.com" autocomplete="email" required />
+          </div>
+          <div>
+            <label for="pedido">Nº do pedido / transação <span class="required">*</span></label>
+            <input id="pedido" name="pedido" type="text" placeholder="Ex.: #A1B2C3" required />
+            <div class="help">Use o código exibido no comprovante ou no e-mail de confirmação.</div>
+          </div>
+          <div>
+            <label for="valor">Valor pago (R$) <span class="required">*</span></label>
+            <input id="valor" name="valor" type="number" inputmode="decimal" step="0.01" min="0" placeholder="Ex.: 29.90" required />
+          </div>
+          <div>
+            <label for="dataCompra">Data da compra <span class="required">*</span></label>
+            <input id="dataCompra" name="data_compra" type="date" required />
+          </div>
+          <div>
+            <label for="pagamento">Método de pagamento <span class="required">*</span></label>
+            <select id="pagamento" name="metodo_pagamento" required>
+              <option value="" selected disabled>Selecione</option>
+              <option>PIX</option>
+              <option>Cartão de Crédito</option>
+              <option>Cartão de Débito</option>
+              <option>Boleto</option>
+              <option>Outros</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid">
+          <div>
+            <label for="motivo">Motivo do reembolso <span class="required">*</span></label>
+            <textarea id="motivo" name="motivo" maxlength="600" placeholder="Descreva o problema ou motivo..." required></textarea>
+            <div class="help"><span id="count">0</span>/600 caracteres</div>
+          </div>
+          <div class="grid grid-2">
+            <div>
+              <label for="anexo">Comprovante (opcional)</label>
+              <input id="anexo" name="comprovante" type="file" accept=".jpg,.jpeg,.png,.pdf" />
+              <div class="help">Anexe recibo, print ou fatura (JPG/PNG/PDF).</div>
+            </div>
+            <div>
+              <label for="telefone">WhatsApp (opcional)</label>
+              <input id="telefone" name="telefone" type="tel" inputmode="tel" placeholder="(00) 00000-0000" />
+              <div class="help">Usado apenas para agilizar o contato.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="row" style="align-items:flex-start">
+          <input id="consent" name="consent" type="checkbox" required />
+          <label for="consent" style="font-weight:500">
+            Declaro que as informações são verdadeiras e aceito que o pedido seja colocado em fila para análise assim que o sistema normalizar. <span class="required">*</span>
+          </label>
+        </div>
+
+        <!-- campos auxiliares -->
+        <input type="hidden" name="status_inicial" value="pendente" />
+        <input type="hidden" name="origem" value="pagina_reembolso_manutencao" />
+
+        <div class="actions">
+          <button type="submit" class="btn" id="btnSubmit">
+            Enviar pedido
+            <span id="spinner" style="display:none; width:14px; height:14px; border:2px solid #fff; border-right-color: transparent; border-radius:50%; animation:spin .7s linear infinite"></span>
+          </button>
+          <button type="reset" class="btn secondary">Limpar</button>
+        </div>
+
+        <div id="statusMsg" class="status" role="alert">
+          Pedido enviado! Assim que o sistema normalizar, sua solicitação será processada. Você receberá atualizações por e-mail.
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // contador de caracteres
+    const motivo = document.getElementById('motivo');
+    const count = document.getElementById('count');
+    motivo.addEventListener('input', () => { count.textContent = motivo.value.length; });
+
+    // UX de envio (se você não tiver backend ainda, isso impede navegação e mostra uma confirmação)
+    const form = document.getElementById('refundForm');
+    const btn = document.getElementById('btnSubmit');
+    const spin = document.getElementById('spinner');
+    const msg = document.getElementById('statusMsg');
+
+    // coloque "USE_POST_REAL = true" quando tiver endpoint real
+    const USE_POST_REAL = false;
+
+    form.addEventListener('submit', (e)=>{
+      if(!USE_POST_REAL){
+        e.preventDefault();
+      }
+      btn.disabled = true;
+      spin.style.display = 'inline-block';
+
+      if(!USE_POST_REAL){
+        // simula resposta e mostra confirmação
+        setTimeout(()=>{
+          spin.style.display='none';
+          msg.style.display='block';
+          btn.disabled = false;
+          form.reset();
+          count.textContent = "0";
+        }, 800);
+      }
+    });
+
+    // acessibilidade: foco visível no teclado
+    document.body.addEventListener('keydown', e => {
+      if(e.key === 'Tab'){ document.body.classList.add('kbd'); }
+    });
+
+    // spinner anim
+    const style = document.createElement('style');
+    style.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>
